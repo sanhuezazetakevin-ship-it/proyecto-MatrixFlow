@@ -134,21 +134,31 @@ def require_role(
     *roles: str
 ):
     """
-    Permite restringir un endpoint
-    a determinados roles.
+    Restringe un endpoint a uno o más roles.
     """
+
+    roles_permitidos = {
+        rol.strip().lower()
+        for rol in roles
+    }
 
     def role_checker(
         current_user: Usuario = Depends(
             get_current_user
         )
     ):
+        rol_usuario = (
+            current_user.rol
+            or ""
+        ).strip().lower()
 
-        if current_user.rol not in roles:
-
+        if rol_usuario not in roles_permitidos:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="No tienes permisos para realizar esta acción"
+                detail=(
+                    "No tienes permisos para "
+                    "realizar esta acción"
+                )
             )
 
         return current_user

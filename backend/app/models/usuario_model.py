@@ -46,10 +46,10 @@ class Usuario(Base):
     )
 
     rol: Mapped[str] = mapped_column(
-        String(30),
-        nullable=False,
-        default="usuario"
-    )
+    String(30),
+    nullable=False,
+    default="consulta"
+)
 
     activo: Mapped[bool] = mapped_column(
         Boolean,
