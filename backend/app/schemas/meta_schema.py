@@ -23,6 +23,8 @@ class MetaCreate(BaseModel):
 
     valor_objetivo: Decimal = Field(
         gt=0,
+        max_digits=14,
+        decimal_places=2,
     )
 
     fecha_inicio: date
@@ -43,6 +45,8 @@ class MetaUpdate(BaseModel):
     valor_objetivo: Decimal | None = Field(
         default=None,
         gt=0,
+        max_digits=14,
+        decimal_places=2,
     )
 
     fecha_inicio: date | None = None

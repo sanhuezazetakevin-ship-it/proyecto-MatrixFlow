@@ -289,7 +289,7 @@ def update(
     # MOVIMIENTOS
     # ==================================================
 
-    def registrar_movimiento(
+def registrar_movimiento(
         self,
         inventario_id: int,
         data: MovimientoCreate,
@@ -301,7 +301,7 @@ def update(
             inventario_id,
             db,
         )
-
+        db.refresh(inventario, with_for_update=True)
         tipo = (
             data.tipo
             .strip()
@@ -398,7 +398,7 @@ def update(
     # HISTORIAL
     # ==================================================
 
-    def get_movimientos(
+def get_movimientos(
         self,
         inventario_id: int,
         db: Session,

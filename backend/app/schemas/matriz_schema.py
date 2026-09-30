@@ -19,6 +19,7 @@ class MatrizCreate(BaseModel):
 
     valores: list[list[Decimal]] = Field(
         min_length=1,
+        max_length=100,
     )
 
     @model_validator(mode="after")
@@ -34,6 +35,12 @@ class MatrizCreate(BaseModel):
         if columnas == 0:
             raise ValueError(
                 "La matriz debe contener columnas."
+            )
+
+        if columnas > 100:
+            raise ValueError(
+                "La matriz no puede tener "
+                "más de 100 columnas."
             )
 
         for fila in self.valores:

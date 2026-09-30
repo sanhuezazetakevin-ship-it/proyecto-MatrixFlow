@@ -12,6 +12,7 @@ class EmpresaCreate(BaseModel):
     ruc: str = Field(
         min_length=11,
         max_length=11,
+        pattern=r"^\d{11}$",
     )
 
     razon_social: str = Field(
@@ -26,7 +27,11 @@ class EmpresaCreate(BaseModel):
 
 
 class EmpresaUpdate(BaseModel):
-    razon_social: str | None = None
+    razon_social: str | None = Field(
+        default=None,
+        min_length=2,
+        max_length=200,
+    )
     nombre_comercial: str | None = None
     direccion: str | None = None
     telefono: str | None = None

@@ -13,6 +13,8 @@ class DetalleVentaCreate(BaseModel):
 
     cantidad: Decimal = Field(
         gt=0,
+        max_digits=14,
+        decimal_places=2,
     )
 
 

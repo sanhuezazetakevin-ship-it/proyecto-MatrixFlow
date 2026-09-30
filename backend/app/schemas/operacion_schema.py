@@ -19,7 +19,7 @@ class OperacionDosVectoresRequest(BaseModel):
 
 class OperacionVectorEscalarRequest(BaseModel):
     vector_id: int = Field(gt=0)
-    escalar: float
+    escalar: float = Field(allow_inf_nan=False)
 
 
 class OperacionDosMatricesRequest(BaseModel):
@@ -33,16 +33,18 @@ class OperacionMatrizRequest(BaseModel):
 
 class OperacionMatrizEscalarRequest(BaseModel):
     matriz_id: int = Field(gt=0)
-    escalar: float
+    escalar: float = Field(allow_inf_nan=False)
 
 
 class CombinacionLinealRequest(BaseModel):
     vector_ids: list[int] = Field(
         min_length=1,
+        max_length=50,
     )
 
     coeficientes: list[float] = Field(
         min_length=1,
+        max_length=50,
     )
 
 

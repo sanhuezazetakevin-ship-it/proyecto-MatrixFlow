@@ -15,17 +15,23 @@ class InventarioCreate(BaseModel):
     stock_inicial: Decimal = Field(
         default=Decimal("0"),
         ge=0,
+        max_digits=14,
+        decimal_places=2,
     )
 
     stock_minimo: Decimal = Field(
         default=Decimal("0"),
         ge=0,
+        max_digits=14,
+        decimal_places=2,
     )
 
 
 class InventarioUpdate(BaseModel):
     stock_minimo: Decimal = Field(
         ge=0,
+        max_digits=14,
+        decimal_places=2,
     )
 
 
@@ -44,7 +50,11 @@ class InventarioResponse(BaseModel):
 
 class MovimientoCreate(BaseModel):
     tipo: str
-    cantidad: Decimal = Field(gt=0)
+    cantidad: Decimal = Field(
+        gt=0,
+        max_digits=14,
+        decimal_places=2,
+    )
     motivo: str | None = None
 
 

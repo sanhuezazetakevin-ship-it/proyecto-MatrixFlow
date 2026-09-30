@@ -1,5 +1,13 @@
-from fastapi import FastAPI
+import logging
+
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from sqlalchemy.exc import IntegrityError
+from starlette.exceptions import (
+    HTTPException as StarletteHTTPException,
+)
 
 from app.core.config import settings
 from app.database.connection import Base, engine
@@ -34,10 +42,11 @@ from app.api.routes import matrices
 from app.models.operacion_model import Operacion
 from app.models.operacion_entrada_model import OperacionEntrada
 from app.models.operacion_resultado_model import OperacionResultado
+from app.models.audit_log_model import AuditLog
 from app.api.routes import operaciones
 from app.api.routes import analisis
 from app.api.routes import reportes
-from app.models.audit_log_model import AuditLog
+
 
 
 from app.models import (
@@ -47,6 +56,9 @@ from app.models import (
     MLTrainingRecord,
 )
 
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("app")
 
 Base.metadata.create_all(bind=engine)
 
@@ -88,6 +100,126 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# ==================================================
+# MANEJO GLOBAL DE ERRORES
+# ==================================================
+# Todas las respuestas de error conservan la clave
+# "detail" (texto), porque el frontend la lee.
+
+def _headers_cors(request: Request) -> dict:
+    origin = request.headers.get("origin")
+
+    if origin and origin in origins:
+        return {
+            "Access-Control-Allow-Origin": origin,
+            "Access-Control-Allow-Credentials": "true",
+        }
+
+    return {}
+
+
+@app.exception_handler(StarletteHTTPException)
+async def manejar_http_exception(
+    request: Request,
+    exc: StarletteHTTPException,
+):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "success": False,
+            "detail": exc.detail,
+        },
+        headers=getattr(exc, "headers", None),
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def manejar_validacion(
+    request: Request,
+    exc: RequestValidationError,
+):
+    errores = []
+
+    for error in exc.errors():
+        campo = ".".join(
+            str(parte) for parte in error["loc"][1:]
+        )
+
+        mensaje = error["msg"].removeprefix(
+            "Value error, "
+        )
+
+        errores.append(
+            {
+                "campo": campo,
+                "mensaje": mensaje,
+            }
+        )
+
+    detalle = "; ".join(
+        f"{e['campo']}: {e['mensaje']}"
+        if e["campo"]
+        else e["mensaje"]
+        for e in errores
+    )
+
+    return JSONResponse(
+        status_code=422,
+        content={
+            "success": False,
+            "detail": detalle or "Datos inválidos.",
+            "errores": errores,
+        },
+    )
+
+
+@app.exception_handler(IntegrityError)
+async def manejar_integridad(
+    request: Request,
+    exc: IntegrityError,
+):
+    logger.warning(
+        "Conflicto de integridad en %s %s: %s",
+        request.method,
+        request.url.path,
+        exc.orig,
+    )
+
+    return JSONResponse(
+        status_code=409,
+        content={
+            "success": False,
+            "detail": (
+                "La operación entra en conflicto con "
+                "datos existentes (por ejemplo, un "
+                "valor duplicado)."
+            ),
+        },
+        headers=_headers_cors(request),
+    )
+
+
+@app.exception_handler(Exception)
+async def manejar_error_interno(
+    request: Request,
+    exc: Exception,
+):
+    logger.exception(
+        "Error no controlado en %s %s",
+        request.method,
+        request.url.path,
+    )
+
+    return JSONResponse(
+        status_code=500,
+        content={
+            "success": False,
+            "detail": "Error interno del servidor.",
+        },
+        headers=_headers_cors(request),
+    )
 
 
 @app.get("/")
