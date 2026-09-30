@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from app.models.meta_model import Meta
 from app.models.sucursal_model import Sucursal
 from app.models.venta_model import Venta
+from app.services.audit_service import registrar_auditoria
 
 from app.schemas.meta_schema import (
     MetaCreate,
@@ -115,6 +116,7 @@ class MetaService:
         self,
         data: MetaCreate,
         db: Session,
+        usuario_id: int | None = None,
     ) -> Meta:
 
         self._get_sucursal(
@@ -160,6 +162,31 @@ class MetaService:
 
         try:
             db.add(meta)
+
+            # Necesitamos el ID antes del commit.
+            db.flush()
+
+            registrar_auditoria(
+                db=db,
+                usuario_id=usuario_id,
+                accion="CREAR",
+                entidad="meta",
+                entidad_id=meta.id,
+                detalle={
+                    "sucursal_id": data.sucursal_id,
+                    "tipo": tipo,
+                    "valor_objetivo": str(
+                        data.valor_objetivo
+                    ),
+                    "fecha_inicio": str(
+                        data.fecha_inicio
+                    ),
+                    "fecha_fin": str(
+                        data.fecha_fin
+                    ),
+                },
+            )
+
             db.commit()
             db.refresh(meta)
 
@@ -174,6 +201,7 @@ class MetaService:
         meta_id: int,
         data: MetaUpdate,
         db: Session,
+        usuario_id: int | None = None,
     ) -> Meta:
 
         meta = self.get_by_id(
@@ -201,6 +229,12 @@ class MetaService:
                 "anterior a la fecha inicial."
             )
 
+        # Valores anteriores, para la auditoría.
+        anteriores = {
+            field: str(getattr(meta, field))
+            for field in values
+        }
+
         for field, value in values.items():
             setattr(
                 meta,
@@ -209,6 +243,22 @@ class MetaService:
             )
 
         try:
+            registrar_auditoria(
+                db=db,
+                usuario_id=usuario_id,
+                accion="ACTUALIZAR",
+                entidad="meta",
+                entidad_id=meta.id,
+                detalle={
+                    "anterior": anteriores,
+                    "nuevo": {
+                        field: str(value)
+                        for field, value
+                        in values.items()
+                    },
+                },
+            )
+
             db.commit()
             db.refresh(meta)
 

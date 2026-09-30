@@ -7,10 +7,7 @@ from fastapi import (
 
 from sqlalchemy.orm import Session
 
-from app.core.security import (
-    get_current_user,
-    require_role,
-)
+from app.core.security import require_role
 from app.database.connection import get_db
 from app.models.usuario_model import Usuario
 
@@ -68,9 +65,12 @@ def crear_empresa(
 )
 def listar_empresas(
     current_user: Usuario = Depends(
-            get_current_user
-        ),
-    db: Session = Depends(get_db),
+    require_role(
+        "administrador",
+        "analista",
+        "consulta"
+    )
+)
 ):
     return empresa_service.get_all(db)
 
@@ -82,7 +82,7 @@ def listar_empresas(
 def obtener_empresa(
     empresa_id: int,
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador", "analista", "consulta")
     ),
     db: Session = Depends(get_db),
 ):

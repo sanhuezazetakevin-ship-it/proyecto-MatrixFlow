@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from sqlalchemy.orm import Session
 
 from app.core.security import require_role
 from app.database.connection import get_db
 from app.models.usuario_model import Usuario
+from app.models.audit_log_model import AuditLog
 
 
 router = APIRouter(
@@ -16,7 +17,7 @@ router = APIRouter(
 @router.get("/prueba")
 def prueba_admin(
     current_user: Usuario = Depends(
-        require_role("admin")
+        require_role("administrador")
     )
 ):
     return {
@@ -32,18 +33,18 @@ def cambiar_rol(
     usuario_id: int,
     nuevo_rol: str,
     current_user: Usuario = Depends(
-        require_role("admin")
+        require_role("administrador")
     ),
     db: Session = Depends(get_db)
 ):
 
-    roles_permitidos = ["usuario", "admin"]
+    roles_permitidos = ["administrador", "analista", "consulta"]
 
     if nuevo_rol not in roles_permitidos:
         raise HTTPException(
-            status_code=400,
-            detail="Rol no válido. Use 'usuario' o 'admin'."
-        )
+        status_code=400,
+        detail="Rol no válido. Use 'administrador', 'analista' o 'consulta'."
+    )
 
     usuario = (
         db.query(Usuario)
@@ -57,7 +58,7 @@ def cambiar_rol(
             detail="Usuario no encontrado"
         )
 
-    if usuario.id == current_user.id and nuevo_rol != "admin":
+    if usuario.id == current_user.id and nuevo_rol != "administrador":
         raise HTTPException(
             status_code=400,
             detail="No puede quitarse a sí mismo el rol de administrador."
@@ -85,7 +86,7 @@ def cambiar_estado_usuario(
     usuario_id: int,
     activo: bool,
     current_user: Usuario = Depends(
-        require_role("admin")
+        require_role("administrador")
     ),
     db: Session = Depends(get_db)
 ):
@@ -132,7 +133,7 @@ def cambiar_estado_usuario(
 @router.get("/usuarios")
 def listar_usuarios(
     current_user: Usuario = Depends(
-        require_role("admin")
+        require_role("administrador")
     ),
     db: Session = Depends(get_db)
 ):
@@ -164,7 +165,7 @@ def listar_usuarios(
 def obtener_usuario(
     usuario_id: int,
     current_user: Usuario = Depends(
-        require_role("admin")
+        require_role("administrador")
     ),
     db: Session = Depends(get_db)
 ):
@@ -191,4 +192,62 @@ def obtener_usuario(
             "activo": usuario.activo,
             "created_at": usuario.created_at
         }
+    }
+
+
+@router.get("/auditoria")
+def listar_auditoria(
+    entidad: str | None = Query(default=None),
+    accion: str | None = Query(default=None),
+    usuario_id: int | None = Query(default=None),
+    limite: int = Query(default=50, ge=1, le=200),
+    desde: int = Query(default=0, ge=0),
+    current_user: Usuario = Depends(
+        require_role("administrador")
+    ),
+    db: Session = Depends(get_db)
+):
+
+    query = db.query(AuditLog)
+
+    if entidad:
+        query = query.filter(
+            AuditLog.entidad == entidad.strip().lower()
+        )
+
+    if accion:
+        query = query.filter(
+            AuditLog.accion == accion.strip().upper()
+        )
+
+    if usuario_id is not None:
+        query = query.filter(
+            AuditLog.usuario_id == usuario_id
+        )
+
+    total = query.count()
+
+    registros = (
+        query
+        .order_by(AuditLog.fecha.desc())
+        .offset(desde)
+        .limit(limite)
+        .all()
+    )
+
+    return {
+        "success": True,
+        "total": total,
+        "registros": [
+            {
+                "id": registro.id,
+                "usuario_id": registro.usuario_id,
+                "accion": registro.accion,
+                "entidad": registro.entidad,
+                "entidad_id": registro.entidad_id,
+                "detalle": registro.detalle,
+                "fecha": registro.fecha
+            }
+            for registro in registros
+        ]
     }

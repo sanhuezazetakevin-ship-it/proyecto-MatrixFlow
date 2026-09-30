@@ -129,6 +129,19 @@ def get_current_user(
         )
 
     return usuario
+
+ROLE_ALIASES = {
+    "admin": "administrador",
+    "administrador": "administrador",
+    "analista": "analista",
+    "usuario": "consulta",
+    "consulta": "consulta",
+}
+
+
+def normalizar_rol(rol: str | None) -> str:
+    rol = (rol or "").strip().lower()
+    return ROLE_ALIASES.get(rol, rol)
     
 def require_role(
     *roles: str
@@ -138,8 +151,7 @@ def require_role(
     """
 
     roles_permitidos = {
-        rol.strip().lower()
-        for rol in roles
+        normalizar_rol(rol) for rol in roles
     }
 
     def role_checker(
@@ -147,10 +159,7 @@ def require_role(
             get_current_user
         )
     ):
-        rol_usuario = (
-            current_user.rol
-            or ""
-        ).strip().lower()
+        rol_usuario = normalizar_rol(current_user.rol)
 
         if rol_usuario not in roles_permitidos:
             raise HTTPException(

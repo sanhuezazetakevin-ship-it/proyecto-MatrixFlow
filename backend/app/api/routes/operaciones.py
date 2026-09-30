@@ -9,11 +9,9 @@ from sqlalchemy.orm import Session
 from app.algorithms.linear_algebra import (
     LinearAlgebraError,
 )
-
-from app.core.security import get_current_user
 from app.database.connection import get_db
 from app.models.usuario_model import Usuario
-
+from app.core.security import require_role
 from app.schemas.operacion_schema import (
     CombinacionLinealRequest,
     OperacionDosMatricesRequest,
@@ -47,7 +45,7 @@ router = APIRouter(
 def sumar_vectores(
     data: OperacionDosVectoresRequest,
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador", "analista")
     ),
     db: Session = Depends(get_db),
 ):
@@ -76,7 +74,7 @@ def sumar_vectores(
 def restar_vectores(
     data: OperacionDosVectoresRequest,
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador", "analista")
     ),
     db: Session = Depends(get_db),
 ):
@@ -105,7 +103,7 @@ def restar_vectores(
 def multiplicar_vector_escalar(
     data: OperacionVectorEscalarRequest,
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador", "analista")
     ),
     db: Session = Depends(get_db),
 ):
@@ -134,7 +132,7 @@ def multiplicar_vector_escalar(
 def producto_punto(
     data: OperacionDosVectoresRequest,
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador", "analista")
     ),
     db: Session = Depends(get_db),
 ):
@@ -166,7 +164,7 @@ def producto_punto(
 )
 def sumar_matrices(
     data: OperacionDosMatricesRequest,
-    current_user: Usuario = Depends(get_current_user),
+    current_user: Usuario = Depends(require_role("administrador", "analista")),
     db: Session = Depends(get_db),
 ):
     try:
@@ -189,7 +187,7 @@ def sumar_matrices(
 )
 def restar_matrices(
     data: OperacionDosMatricesRequest,
-    current_user: Usuario = Depends(get_current_user),
+    current_user: Usuario = Depends(require_role("administrador", "analista")),
     db: Session = Depends(get_db),
 ):
     try:
@@ -212,7 +210,7 @@ def restar_matrices(
 )
 def multiplicar_matrices(
     data: OperacionDosMatricesRequest,
-    current_user: Usuario = Depends(get_current_user),
+    current_user: Usuario = Depends(require_role("administrador", "analista")),
     db: Session = Depends(get_db),
 ):
     try:
@@ -235,7 +233,7 @@ def multiplicar_matrices(
 )
 def transponer_matriz(
     data: OperacionMatrizRequest,
-    current_user: Usuario = Depends(get_current_user),
+    current_user: Usuario = Depends(require_role("administrador", "analista")),
     db: Session = Depends(get_db),
 ):
     try:
@@ -257,7 +255,7 @@ def transponer_matriz(
 )
 def multiplicar_matriz_escalar(
     data: OperacionMatrizEscalarRequest,
-    current_user: Usuario = Depends(get_current_user),
+    current_user: Usuario = Depends(require_role("administrador", "analista")),
     db: Session = Depends(get_db),
 ):
     try:
@@ -285,7 +283,7 @@ def multiplicar_matriz_escalar(
 def combinacion_lineal(
     data: CombinacionLinealRequest,
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador", "analista")
     ),
     db: Session = Depends(get_db),
 ):
@@ -313,7 +311,7 @@ def combinacion_lineal(
 )
 def listar_operaciones(
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador", "analista", "consulta")
     ),
     db: Session = Depends(get_db),
 ):
@@ -327,7 +325,7 @@ def listar_operaciones(
 def obtener_operacion(
     operacion_id: int,
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador", "analista", "consulta")
     ),
     db: Session = Depends(get_db),
 ):

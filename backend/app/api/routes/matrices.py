@@ -7,11 +7,9 @@ from fastapi import (
 )
 
 from sqlalchemy.orm import Session
-
-from app.core.security import get_current_user
 from app.database.connection import get_db
 from app.models.usuario_model import Usuario
-
+from app.core.security import require_role
 from app.schemas.matriz_schema import (
     MatrizCreate,
     MatrizResponse,
@@ -37,7 +35,7 @@ router = APIRouter(
 def crear_matriz(
     data: MatrizCreate,
     current_user: Usuario = Depends(
-        get_current_user
+       require_role("administrador", "analista")
     ),
     db: Session = Depends(get_db),
 ):
@@ -67,7 +65,7 @@ def crear_matriz(
 )
 def listar_matrices(
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador", "analista", "consulta")
     ),
     db: Session = Depends(get_db),
 ):
@@ -81,7 +79,7 @@ def listar_matrices(
 def obtener_matriz(
     matriz_id: int,
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador", "analista", "consulta")
     ),
     db: Session = Depends(get_db),
 ):
@@ -106,7 +104,7 @@ def actualizar_matriz(
     matriz_id: int,
     data: MatrizUpdate,
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador", "analista")
     ),
     db: Session = Depends(get_db),
 ):
@@ -137,7 +135,7 @@ def actualizar_matriz(
 def eliminar_matriz(
     matriz_id: int,
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador")
     ),
     db: Session = Depends(get_db),
 ):

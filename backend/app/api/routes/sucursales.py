@@ -7,7 +7,7 @@ from fastapi import (
 
 from sqlalchemy.orm import Session
 
-from app.core.security import get_current_user
+from app.core.security import require_role
 from app.database.connection import get_db
 from app.models.usuario_model import Usuario
 
@@ -36,8 +36,8 @@ router = APIRouter(
 def crear_sucursal(
     data: SucursalCreate,
     current_user: Usuario = Depends(
-        get_current_user
-    ),
+    require_role("administrador")
+),
     db: Session = Depends(get_db),
 ):
     try:
@@ -65,7 +65,11 @@ def crear_sucursal(
 )
 def listar_sucursales(
     current_user: Usuario = Depends(
-        get_current_user
+        require_role(
+        "administrador",
+        "analista",
+        "consulta"
+    )
     ),
     db: Session = Depends(get_db),
 ):
@@ -79,7 +83,11 @@ def listar_sucursales(
 def listar_sucursales_empresa(
     empresa_id: int,
     current_user: Usuario = Depends(
-        get_current_user
+        require_role(
+                "administrador",
+                "analista",
+                "consulta"
+            )
     ),
     db: Session = Depends(get_db),
 ):
@@ -103,7 +111,11 @@ def listar_sucursales_empresa(
 def obtener_sucursal(
     sucursal_id: int,
     current_user: Usuario = Depends(
-        get_current_user
+        require_role(
+                "administrador",
+                "analista",
+                "consulta"
+            )
     ),
     db: Session = Depends(get_db),
 ):
@@ -128,7 +140,9 @@ def actualizar_sucursal(
     sucursal_id: int,
     data: SucursalUpdate,
     current_user: Usuario = Depends(
-        get_current_user
+       require_role(
+               "administrador"
+           )
     ),
     db: Session = Depends(get_db),
 ):

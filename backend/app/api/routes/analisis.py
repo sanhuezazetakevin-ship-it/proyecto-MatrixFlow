@@ -3,10 +3,8 @@ from fastapi import (
     Depends,
     HTTPException,
 )
-
+from app.core.security import require_role
 from sqlalchemy.orm import Session
-
-from app.core.security import get_current_user
 from app.database.connection import get_db
 from app.models.usuario_model import Usuario
 
@@ -41,7 +39,7 @@ router = APIRouter(
 def generar_vector_ventas(
     data: GenerarVectorEmpresaRequest,
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador", "analista")
     ),
     db: Session = Depends(get_db),
 ):
@@ -70,7 +68,7 @@ def generar_vector_ventas(
 def generar_vector_metas(
     data: GenerarVectorEmpresaRequest,
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador", "analista")
     ),
     db: Session = Depends(get_db),
 ):
@@ -96,7 +94,7 @@ def generar_vector_metas(
 def comparar_ventas_metas(
     data: CompararVentasMetasRequest,
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador", "analista")
     ),
     db: Session = Depends(get_db),
 ):
@@ -127,7 +125,7 @@ def comparar_ventas_metas(
 def analizar_ventas_metas_periodo(
     data: AnalisisPeriodoRequest,
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador", "analista")
     ),
     db: Session = Depends(get_db),
 ):

@@ -6,11 +6,9 @@ from fastapi import (
 )
 
 from sqlalchemy.orm import Session
-
-from app.core.security import get_current_user
 from app.database.connection import get_db
 from app.models.usuario_model import Usuario
-
+from app.core.security import require_role
 from app.schemas.meta_schema import (
     CumplimientoMetaResponse,
     MetaCreate,
@@ -37,7 +35,7 @@ router = APIRouter(
 def crear_meta(
     data: MetaCreate,
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador", "analista")
     ),
     db: Session = Depends(get_db),
 ):
@@ -45,6 +43,7 @@ def crear_meta(
         return meta_service.create(
             data,
             db,
+            usuario_id=current_user.id,
         )
 
     except ValueError as error:
@@ -66,7 +65,7 @@ def crear_meta(
 )
 def listar_metas(
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador", "analista", "consulta")
     ),
     db: Session = Depends(get_db),
 ):
@@ -80,7 +79,7 @@ def listar_metas(
 def listar_metas_sucursal(
     sucursal_id: int,
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador", "analista", "consulta")
     ),
     db: Session = Depends(get_db),
 ):
@@ -104,7 +103,7 @@ def listar_metas_sucursal(
 def obtener_cumplimiento(
     meta_id: int,
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador", "analista", "consulta")
     ),
     db: Session = Depends(get_db),
 ):
@@ -128,7 +127,7 @@ def obtener_cumplimiento(
 def obtener_meta(
     meta_id: int,
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador", "analista", "consulta")
     ),
     db: Session = Depends(get_db),
 ):
@@ -153,7 +152,7 @@ def actualizar_meta(
     meta_id: int,
     data: MetaUpdate,
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador", "analista")
     ),
     db: Session = Depends(get_db),
 ):
@@ -162,6 +161,7 @@ def actualizar_meta(
             meta_id,
             data,
             db,
+            usuario_id=current_user.id,
         )
 
     except ValueError as error:

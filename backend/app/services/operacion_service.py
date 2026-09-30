@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 
+from app.services.audit_service import registrar_auditoria
 from app.algorithms.linear_algebra import (
     LinearAlgebraError,
     linear_algebra_engine,
@@ -114,6 +115,15 @@ class OperacionService:
 
         db.add(operacion)
         db.flush()
+
+        registrar_auditoria(
+            db=db,
+            usuario_id=usuario_id,
+            accion="EJECUTAR",
+            entidad="operacion",
+            entidad_id=operacion.id,
+            detalle={"tipo": tipo},
+        )
 
         return operacion
 

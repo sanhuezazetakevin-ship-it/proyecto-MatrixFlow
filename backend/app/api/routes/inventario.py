@@ -6,11 +6,9 @@ from fastapi import (
 )
 
 from sqlalchemy.orm import Session
-
-from app.core.security import get_current_user
 from app.database.connection import get_db
 from app.models.usuario_model import Usuario
-
+from app.core.security import require_role
 from app.schemas.inventario_schema import (
     InventarioCreate,
     InventarioResponse,
@@ -38,7 +36,7 @@ router = APIRouter(
 def crear_inventario(
     data: InventarioCreate,
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador")
     ),
     db: Session = Depends(get_db),
 ):
@@ -68,7 +66,7 @@ def crear_inventario(
 )
 def listar_inventario(
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador", "analista", "consulta")
     ),
     db: Session = Depends(get_db),
 ):
@@ -82,7 +80,7 @@ def listar_inventario(
 def listar_inventario_sucursal(
     sucursal_id: int,
     current_user: Usuario = Depends(
-        get_current_user
+       require_role("administrador", "analista", "consulta")
     ),
     db: Session = Depends(get_db),
 ):
@@ -106,7 +104,7 @@ def listar_inventario_sucursal(
 def obtener_inventario(
     inventario_id: int,
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador", "analista", "consulta")
     ),
     db: Session = Depends(get_db),
 ):
@@ -131,7 +129,7 @@ def actualizar_inventario(
     inventario_id: int,
     data: InventarioUpdate,
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador", "analista")
     ),
     db: Session = Depends(get_db),
 ):
@@ -140,6 +138,7 @@ def actualizar_inventario(
             inventario_id,
             data,
             db,
+            usuario_id=current_user.id,
         )
 
     except ValueError as error:
@@ -164,7 +163,7 @@ def registrar_movimiento(
     inventario_id: int,
     data: MovimientoCreate,
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador", "analista")
     ),
     db: Session = Depends(get_db),
 ):
@@ -196,7 +195,7 @@ def registrar_movimiento(
 def listar_movimientos(
     inventario_id: int,
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador", "analista", "consulta")
     ),
     db: Session = Depends(get_db),
 ):

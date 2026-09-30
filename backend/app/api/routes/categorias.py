@@ -6,11 +6,8 @@ from fastapi import (
 )
 
 from sqlalchemy.orm import Session
-
-from app.core.security import get_current_user
 from app.database.connection import get_db
 from app.models.usuario_model import Usuario
-
 from app.schemas.categoria_schema import (
     CategoriaCreate,
     CategoriaResponse,
@@ -20,6 +17,10 @@ from app.schemas.categoria_schema import (
 from app.services.categoria_service import (
     categoria_service,
 )
+
+from app.core.security import require_role
+
+require_role("administrador")
 
 
 router = APIRouter(
@@ -36,8 +37,10 @@ router = APIRouter(
 def crear_categoria(
     data: CategoriaCreate,
     current_user: Usuario = Depends(
-        get_current_user
-    ),
+    require_role(
+        "administrador"
+    )
+),
     db: Session = Depends(get_db),
 ):
     try:
@@ -65,7 +68,11 @@ def crear_categoria(
 )
 def listar_categorias(
     current_user: Usuario = Depends(
-        get_current_user
+        require_role(
+        "administrador",
+        "analista",
+        "consulta" 
+    )
     ),
     db: Session = Depends(get_db),
 ):
@@ -79,7 +86,11 @@ def listar_categorias(
 def obtener_categoria(
     categoria_id: int,
     current_user: Usuario = Depends(
-        get_current_user
+        require_role(
+        "administrador",
+        "analista",
+        "consulta"
+    )
     ),
     db: Session = Depends(get_db),
 ):
@@ -104,7 +115,9 @@ def actualizar_categoria(
     categoria_id: int,
     data: CategoriaUpdate,
     current_user: Usuario = Depends(
-        get_current_user
+        require_role(
+        "administrador"
+    )
     ),
     db: Session = Depends(get_db),
 ):

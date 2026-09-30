@@ -6,11 +6,9 @@ from fastapi import (
 )
 
 from sqlalchemy.orm import Session
-
-from app.core.security import get_current_user
 from app.database.connection import get_db
 from app.models.usuario_model import Usuario
-
+from app.core.security import require_role
 from app.schemas.producto_schema import (
     ProductoCreate,
     ProductoResponse,
@@ -36,7 +34,7 @@ router = APIRouter(
 def crear_producto(
     data: ProductoCreate,
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador")
     ),
     db: Session = Depends(get_db),
 ):
@@ -65,7 +63,7 @@ def crear_producto(
 )
 def listar_productos(
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador", "analista", "consulta")
     ),
     db: Session = Depends(get_db),
 ):
@@ -79,7 +77,7 @@ def listar_productos(
 def listar_productos_empresa(
     empresa_id: int,
     current_user: Usuario = Depends(
-        get_current_user
+       require_role("administrador", "analista", "consulta")
     ),
     db: Session = Depends(get_db),
 ):
@@ -103,7 +101,7 @@ def listar_productos_empresa(
 def listar_productos_categoria(
     categoria_id: int,
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador", "analista", "consulta")
     ),
     db: Session = Depends(get_db),
 ):
@@ -127,7 +125,7 @@ def listar_productos_categoria(
 def obtener_producto(
     producto_id: int,
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador", "analista", "consulta")
     ),
     db: Session = Depends(get_db),
 ):
@@ -152,7 +150,7 @@ def actualizar_producto(
     producto_id: int,
     data: ProductoUpdate,
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador")
     ),
     db: Session = Depends(get_db),
 ):

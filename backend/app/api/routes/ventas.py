@@ -7,7 +7,7 @@ from fastapi import (
 
 from sqlalchemy.orm import Session
 
-from app.core.security import get_current_user
+from app.core.security import require_role
 from app.database.connection import get_db
 from app.models.usuario_model import Usuario
 
@@ -35,7 +35,7 @@ router = APIRouter(
 def crear_venta(
     data: VentaCreate,
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador", "analista")
     ),
     db: Session = Depends(get_db),
 ):
@@ -65,7 +65,7 @@ def crear_venta(
 )
 def listar_ventas(
     current_user: Usuario = Depends(
-        get_current_user
+         require_role("administrador", "analista", "consulta")
     ),
     db: Session = Depends(get_db),
 ):
@@ -79,7 +79,7 @@ def listar_ventas(
 def listar_ventas_sucursal(
     sucursal_id: int,
     current_user: Usuario = Depends(
-        get_current_user
+         require_role("administrador", "analista", "consulta")
     ),
     db: Session = Depends(get_db),
 ):
@@ -101,7 +101,7 @@ def listar_ventas_sucursal(
 )
 def listar_ventas_completadas(
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador", "analista", "consulta")
     ),
     db: Session = Depends(get_db),
 ):
@@ -116,7 +116,7 @@ def listar_ventas_completadas(
 def obtener_venta(
     venta_id: int,
     current_user: Usuario = Depends(
-        get_current_user
+         require_role("administrador", "analista", "consulta")
     ),
     db: Session = Depends(get_db),
 ):
@@ -139,7 +139,7 @@ def obtener_venta(
 def anular_venta(
     venta_id: int,
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador", "analista")
     ),
     db: Session = Depends(get_db),
 ):

@@ -37,7 +37,7 @@ from app.models.operacion_resultado_model import OperacionResultado
 from app.api.routes import operaciones
 from app.api.routes import analisis
 from app.api.routes import reportes
-
+from app.models.audit_log_model import AuditLog
 
 
 from app.models import (

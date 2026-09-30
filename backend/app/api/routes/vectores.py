@@ -7,8 +7,7 @@ from fastapi import (
 )
 
 from sqlalchemy.orm import Session
-
-from app.core.security import get_current_user
+from app.core.security import require_role
 from app.database.connection import get_db
 from app.models.usuario_model import Usuario
 
@@ -37,7 +36,7 @@ router = APIRouter(
 def crear_vector(
     data: VectorCreate,
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador", "analista")
     ),
     db: Session = Depends(get_db),
 ):
@@ -67,7 +66,7 @@ def crear_vector(
 )
 def listar_vectores(
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador", "analista", "consulta")
     ),
     db: Session = Depends(get_db),
 ):
@@ -81,7 +80,7 @@ def listar_vectores(
 def obtener_vector(
     vector_id: int,
     current_user: Usuario = Depends(
-        get_current_user
+       require_role("administrador", "analista", "consulta")
     ),
     db: Session = Depends(get_db),
 ):
@@ -106,7 +105,7 @@ def actualizar_vector(
     vector_id: int,
     data: VectorUpdate,
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador", "analista")
     ),
     db: Session = Depends(get_db),
 ):
@@ -137,7 +136,7 @@ def actualizar_vector(
 def eliminar_vector(
     vector_id: int,
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador")
     ),
     db: Session = Depends(get_db),
 ):

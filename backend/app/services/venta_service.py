@@ -6,6 +6,7 @@ from decimal import (
 
 from sqlalchemy.orm import Session
 
+from app.services.audit_service import registrar_auditoria
 from app.models.detalle_venta_model import DetalleVenta
 from app.models.inventario_model import Inventario
 from app.models.movimiento_inventario_model import (
@@ -150,7 +151,10 @@ class VentaService:
         # VALIDAR TODOS LOS PRODUCTOS PRIMERO
         # ==========================================
 
-        for item in data.productos:
+        for item in sorted(
+            data.productos,
+            key=lambda item: item.producto_id,
+        ):
 
             producto = (
                 db.query(Producto)
@@ -191,6 +195,7 @@ class VentaService:
                     Inventario.producto_id
                     == producto.id,
                 )
+                .with_for_update()
                 .first()
             )
 
@@ -327,6 +332,20 @@ class VentaService:
             # UN SOLO COMMIT
             # ======================================
 
+            registrar_auditoria(
+                db=db,
+                usuario_id=usuario_id,
+                accion="CREAR",
+                entidad="venta",
+                entidad_id=venta.id,
+                detalle={
+                    "numero_venta": venta.numero_venta,
+                    "sucursal_id": venta.sucursal_id,
+                    "total": str(venta.total),
+                    "productos": len(preparados),
+                },
+            )
+
             db.commit()
             db.refresh(venta)
 
@@ -346,6 +365,8 @@ class VentaService:
             venta_id,
             db,
         )
+        
+        db.refresh(venta, with_for_update=True)
 
         # ==========================================
         # VALIDAR ESTADO
@@ -367,7 +388,10 @@ class VentaService:
             # DEVOLVER PRODUCTOS AL INVENTARIO
             # ======================================
 
-            for detalle in venta.detalles:
+            for detalle in sorted(
+                venta.detalles,
+                key=lambda detalle: detalle.producto_id,
+            ):
 
                 inventario = (
                     db.query(Inventario)
@@ -377,6 +401,7 @@ class VentaService:
                         Inventario.producto_id
                         == detalle.producto_id,
                     )
+                    .with_for_update()
                     .first()
                 )
 
@@ -424,6 +449,18 @@ class VentaService:
             # ======================================
             # UNA SOLA TRANSACCIÓN
             # ======================================
+
+            registrar_auditoria(
+                db=db,
+                usuario_id=usuario_id,
+                accion="ANULAR",
+                entidad="venta",
+                entidad_id=venta.id,
+                detalle={
+                    "numero_venta": venta.numero_venta,
+                    "total": str(venta.total),
+                },
+            )
 
             db.commit()
             db.refresh(venta)

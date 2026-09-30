@@ -7,9 +7,7 @@ from fastapi import (
 
 from sqlalchemy.orm import Session
 from datetime import date
-from app.core.security import (
-    get_current_user,
-)
+from app.core.security import require_role
 
 from app.database.connection import (
     get_db,
@@ -51,7 +49,7 @@ def obtener_dashboard(
         gt=0,
     ),
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador", "analista", "consulta")
     ),
     db: Session = Depends(get_db),
 ):
@@ -87,7 +85,7 @@ def obtener_indicadores_periodo(
     fecha_inicio: date = Query(...),
     fecha_fin: date = Query(...),
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador", "analista", "consulta")
     ),
     db: Session = Depends(get_db),
 ):
@@ -123,7 +121,7 @@ def obtener_ventas_productos(
     fecha_inicio: date = Query(...),
     fecha_fin: date = Query(...),
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador", "analista", "consulta")
     ),
     db: Session = Depends(get_db),
 ):
@@ -153,7 +151,7 @@ def obtener_ventas_productos(
 def obtener_estado_inventario(
     empresa_id: int = Query(..., gt=0),
     current_user: Usuario = Depends(
-        get_current_user
+        require_role("administrador", "analista", "consulta")
     ),
     db: Session = Depends(get_db),
 ):

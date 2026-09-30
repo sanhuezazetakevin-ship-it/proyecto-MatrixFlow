@@ -2,6 +2,7 @@ from decimal import Decimal
 
 from sqlalchemy.orm import Session
 
+from app.services.audit_service import registrar_auditoria
 from app.models.inventario_model import Inventario
 from app.models.movimiento_inventario_model import (
     MovimientoInventario,
@@ -152,6 +153,20 @@ class InventarioService:
                 )
 
                 db.add(movimiento)
+                
+                registrar_auditoria(
+                db=db,
+                usuario_id=usuario_id,
+                accion="CREAR",
+                entidad="inventario",
+                entidad_id=inventario.id,
+                detalle={
+                    "sucursal_id": data.sucursal_id,
+                    "producto_id": data.producto_id,
+                    "stock_inicial": str(data.stock_inicial),
+                    "stock_minimo": str(data.stock_minimo),
+                },
+            )
 
             db.commit()
             db.refresh(inventario)
@@ -223,11 +238,12 @@ class InventarioService:
     # STOCK MÍNIMO
     # ==================================================
 
-    def update(
+def update(
         self,
         inventario_id: int,
         data: InventarioUpdate,
         db: Session,
+        usuario_id: int | None = None,
     ) -> Inventario:
 
         inventario = self.get_by_id(
@@ -235,11 +251,31 @@ class InventarioService:
             db,
         )
 
+        stock_minimo_anterior = (
+            inventario.stock_minimo
+        )
+
         inventario.stock_minimo = (
             data.stock_minimo
         )
 
         try:
+            registrar_auditoria(
+                db=db,
+                usuario_id=usuario_id,
+                accion="ACTUALIZAR",
+                entidad="inventario",
+                entidad_id=inventario.id,
+                detalle={
+                    "stock_minimo_anterior": str(
+                        stock_minimo_anterior
+                    ),
+                    "stock_minimo_nuevo": str(
+                        data.stock_minimo
+                    ),
+                },
+            )
+
             db.commit()
             db.refresh(inventario)
 
@@ -330,6 +366,21 @@ class InventarioService:
 
         try:
             db.add(movimiento)
+
+            registrar_auditoria(
+                db=db,
+                usuario_id=usuario_id,
+                accion="MOVIMIENTO",
+                entidad="inventario",
+                entidad_id=inventario.id,
+                detalle={
+                    "tipo": tipo,
+                    "cantidad": str(cantidad),
+                    "stock_anterior": str(stock_anterior),
+                    "stock_nuevo": str(stock_nuevo),
+                    "motivo": movimiento.motivo,
+                },
+            )
 
             # Un solo commit para ambas operaciones.
             db.commit()
