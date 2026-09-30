@@ -131,7 +131,7 @@ async def manejar_http_exception(
             "success": False,
             "detail": exc.detail,
         },
-        headers={**_headers_cors(request), **(getattr(exc, "headers", None) or {})},
+        headers=getattr(exc, "headers", None),
     )
 
 
@@ -220,11 +220,6 @@ async def manejar_error_interno(
         },
         headers=_headers_cors(request),
     )
-
-
-@app.get("/health")
-def health():
-    return {"status": "ok", "service": "matrixflow-backend"}
 
 
 @app.get("/")
