@@ -4,6 +4,8 @@ from app.models.categoria_model import Categoria
 from app.models.empresa_model import Empresa
 from app.models.producto_model import Producto
 
+from app.services.audit_service import registrar_auditoria
+
 from app.schemas.producto_schema import (
     ProductoCreate,
     ProductoUpdate,
@@ -64,6 +66,7 @@ class ProductoService:
         self,
         data: ProductoCreate,
         db: Session,
+        usuario_id: int | None = None,
     ) -> Producto:
 
         self._validar_empresa(
@@ -114,6 +117,8 @@ class ProductoService:
 
         try:
             db.add(producto)
+            db.flush()
+            registrar_auditoria(db, usuario_id, "CREAR", "producto", producto.id, {"codigo": producto.codigo})
             db.commit()
             db.refresh(producto)
 
@@ -198,6 +203,7 @@ class ProductoService:
         producto_id: int,
         data: ProductoUpdate,
         db: Session,
+        usuario_id: int | None = None,
     ) -> Producto:
 
         producto = self.get_by_id(
@@ -244,6 +250,7 @@ class ProductoService:
             )
 
         try:
+            registrar_auditoria(db, usuario_id, "ACTUALIZAR", "producto", producto.id, {"campos": list(values.keys())})
             db.commit()
             db.refresh(producto)
 

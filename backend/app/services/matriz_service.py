@@ -1,5 +1,7 @@
 from sqlalchemy.orm import Session
 
+from app.services.audit_service import registrar_auditoria
+
 from app.models.matriz_model import Matriz
 from app.models.matriz_valor_model import MatrizValor
 
@@ -63,6 +65,7 @@ class MatrizService:
 
                     db.add(matriz_valor)
 
+            registrar_auditoria(db, usuario_id, "CREAR", "matriz", matriz.id, {"filas": matriz.filas, "columnas": matriz.columnas})
             db.commit()
             db.refresh(matriz)
 
@@ -111,6 +114,7 @@ class MatrizService:
         matriz_id: int,
         data: MatrizUpdate,
         db: Session,
+        usuario_id: int | None = None,
     ) -> Matriz:
 
         matriz = self.get_by_id(
@@ -145,6 +149,7 @@ class MatrizService:
             )
 
         try:
+            registrar_auditoria(db, usuario_id, "ACTUALIZAR", "matriz", matriz.id, {"campos": list(values.keys())})
             db.commit()
             db.refresh(matriz)
 
@@ -158,6 +163,7 @@ class MatrizService:
         self,
         matriz_id: int,
         db: Session,
+        usuario_id: int | None = None,
     ) -> None:
 
         matriz = self.get_by_id(
@@ -166,6 +172,7 @@ class MatrizService:
         )
 
         try:
+            registrar_auditoria(db, usuario_id, "ELIMINAR", "matriz", matriz.id, {"nombre": matriz.nombre})
             db.delete(matriz)
             db.commit()
 

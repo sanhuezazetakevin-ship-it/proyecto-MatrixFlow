@@ -10,6 +10,7 @@ from app.models.face_embedding_model import FaceEmbedding
 
 from app.services.embedding_service import embedding_service
 from app.services.similarity_service import cosine_similarity
+from app.services.audit_service import registrar_auditoria
 
 
 pwd_context = CryptContext(
@@ -80,6 +81,15 @@ class AuthService:
         db.add(nuevo_usuario)
 
         try:
+            db.flush()
+            registrar_auditoria(
+                db=db,
+                usuario_id=nuevo_usuario.id,
+                accion="REGISTRAR",
+                entidad="usuario",
+                entidad_id=nuevo_usuario.id,
+                detalle={"email": nuevo_usuario.email, "rol": nuevo_usuario.rol},
+            )
             db.commit()
             db.refresh(nuevo_usuario)
 
@@ -124,6 +134,16 @@ class AuthService:
             raise ValueError(
                 "Correo o contraseña incorrectos."
             )
+
+        registrar_auditoria(
+            db=db,
+            usuario_id=usuario.id,
+            accion="LOGIN",
+            entidad="usuario",
+            entidad_id=usuario.id,
+            detalle={"email": usuario.email},
+        )
+        db.commit()
 
         return usuario
 

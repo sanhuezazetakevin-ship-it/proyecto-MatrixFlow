@@ -44,6 +44,7 @@ def crear_sucursal(
         return sucursal_service.create(
             data,
             db,
+            usuario_id=current_user.id,
         )
 
     except ValueError as error:
@@ -151,6 +152,7 @@ def actualizar_sucursal(
             sucursal_id,
             data,
             db,
+            usuario_id=current_user.id,
         )
 
     except ValueError as error:

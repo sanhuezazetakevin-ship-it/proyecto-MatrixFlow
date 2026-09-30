@@ -1,5 +1,7 @@
 from sqlalchemy.orm import Session
 
+from app.services.audit_service import registrar_auditoria
+
 from app.models.vector_model import Vector
 from app.models.vector_valor_model import VectorValor
 
@@ -56,6 +58,7 @@ class VectorService:
 
                 db.add(vector_valor)
 
+            registrar_auditoria(db, usuario_id, "CREAR", "vector", vector.id, {"dimension": vector.dimension})
             db.commit()
             db.refresh(vector)
 
@@ -104,6 +107,7 @@ class VectorService:
         vector_id: int,
         data: VectorUpdate,
         db: Session,
+        usuario_id: int | None = None,
     ) -> Vector:
 
         vector = self.get_by_id(
@@ -136,6 +140,7 @@ class VectorService:
             )
 
         try:
+            registrar_auditoria(db, usuario_id, "ACTUALIZAR", "vector", vector.id, {"campos": list(values.keys())})
             db.commit()
             db.refresh(vector)
 
@@ -149,6 +154,7 @@ class VectorService:
         self,
         vector_id: int,
         db: Session,
+        usuario_id: int | None = None,
     ) -> None:
 
         vector = self.get_by_id(
@@ -157,6 +163,7 @@ class VectorService:
         )
 
         try:
+            registrar_auditoria(db, usuario_id, "ELIMINAR", "vector", vector.id, {"nombre": vector.nombre})
             db.delete(vector)
             db.commit()
 

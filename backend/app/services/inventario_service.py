@@ -153,8 +153,8 @@ class InventarioService:
                 )
 
                 db.add(movimiento)
-                
-                registrar_auditoria(
+
+            registrar_auditoria(
                 db=db,
                 usuario_id=usuario_id,
                 accion="CREAR",
@@ -238,188 +238,191 @@ class InventarioService:
     # STOCK MÍNIMO
     # ==================================================
 
-def update(
-        self,
-        inventario_id: int,
-        data: InventarioUpdate,
-        db: Session,
-        usuario_id: int | None = None,
-    ) -> Inventario:
-
-        inventario = self.get_by_id(
-            inventario_id,
-            db,
-        )
-
-        stock_minimo_anterior = (
-            inventario.stock_minimo
-        )
-
-        inventario.stock_minimo = (
-            data.stock_minimo
-        )
-
-        try:
-            registrar_auditoria(
-                db=db,
-                usuario_id=usuario_id,
-                accion="ACTUALIZAR",
-                entidad="inventario",
-                entidad_id=inventario.id,
-                detalle={
-                    "stock_minimo_anterior": str(
-                        stock_minimo_anterior
-                    ),
-                    "stock_minimo_nuevo": str(
-                        data.stock_minimo
-                    ),
-                },
+    def update(
+            self,
+            inventario_id: int,
+            data: InventarioUpdate,
+            db: Session,
+            usuario_id: int | None = None,
+        ) -> Inventario:
+    
+            inventario = self.get_by_id(
+                inventario_id,
+                db,
             )
-
-            db.commit()
-            db.refresh(inventario)
-
-        except Exception:
-            db.rollback()
-            raise
-
-        return inventario
-
-    # ==================================================
-    # MOVIMIENTOS
-    # ==================================================
-
-def registrar_movimiento(
-        self,
-        inventario_id: int,
-        data: MovimientoCreate,
-        usuario_id: int,
-        db: Session,
-    ) -> MovimientoInventario:
-
-        inventario = self.get_by_id(
-            inventario_id,
-            db,
-        )
-        db.refresh(inventario, with_for_update=True)
-        tipo = (
-            data.tipo
-            .strip()
-            .upper()
-        )
-
-        if tipo not in TIPOS_MOVIMIENTO:
-            raise ValueError(
-                "Tipo de movimiento inválido. "
-                "Use ENTRADA, SALIDA, "
-                "AJUSTE_ENTRADA o AJUSTE_SALIDA."
+    
+            stock_minimo_anterior = (
+                inventario.stock_minimo
             )
-
-        cantidad = data.cantidad
-
-        stock_anterior = (
-            inventario.stock_actual
-        )
-
-        # ----------------------------------------------
-        # CALCULAR NUEVO STOCK
-        # ----------------------------------------------
-
-        if tipo in {
-            "ENTRADA",
-            "AJUSTE_ENTRADA",
-        }:
-            stock_nuevo = (
-                stock_anterior + cantidad
+    
+            inventario.stock_minimo = (
+                data.stock_minimo
             )
-
-        else:
-            stock_nuevo = (
-                stock_anterior - cantidad
-            )
-
-            if stock_nuevo < 0:
-                raise ValueError(
-                    "Stock insuficiente para "
-                    "realizar la salida."
+    
+            try:
+                registrar_auditoria(
+                    db=db,
+                    usuario_id=usuario_id,
+                    accion="ACTUALIZAR",
+                    entidad="inventario",
+                    entidad_id=inventario.id,
+                    detalle={
+                        "stock_minimo_anterior": str(
+                            stock_minimo_anterior
+                        ),
+                        "stock_minimo_nuevo": str(
+                            data.stock_minimo
+                        ),
+                    },
                 )
-
-        # ----------------------------------------------
-        # ACTUALIZAR + REGISTRAR
-        # ----------------------------------------------
-
-        inventario.stock_actual = stock_nuevo
-
-        movimiento = MovimientoInventario(
-            inventario_id=inventario.id,
-            tipo=tipo,
-            cantidad=cantidad,
-            stock_anterior=stock_anterior,
-            stock_nuevo=stock_nuevo,
-            motivo=(
-                data.motivo.strip()
-                if data.motivo
-                else None
-            ),
-            usuario_id=usuario_id,
-        )
-
-        try:
-            db.add(movimiento)
-
-            registrar_auditoria(
-                db=db,
+    
+                db.commit()
+                db.refresh(inventario)
+    
+            except Exception:
+                db.rollback()
+                raise
+    
+            return inventario
+    
+        # ==================================================
+        # MOVIMIENTOS
+        # ==================================================
+    
+    def registrar_movimiento(
+            self,
+            inventario_id: int,
+            data: MovimientoCreate,
+            usuario_id: int,
+            db: Session,
+        ) -> MovimientoInventario:
+    
+            inventario = (
+                db.query(Inventario)
+                .filter(Inventario.id == inventario_id)
+                .with_for_update()
+                .first()
+            )
+            if not inventario:
+                raise ValueError("Inventario no encontrado.")
+            tipo = (
+                data.tipo
+                .strip()
+                .upper()
+            )
+    
+            if tipo not in TIPOS_MOVIMIENTO:
+                raise ValueError(
+                    "Tipo de movimiento inválido. "
+                    "Use ENTRADA, SALIDA, "
+                    "AJUSTE_ENTRADA o AJUSTE_SALIDA."
+                )
+    
+            cantidad = data.cantidad
+    
+            stock_anterior = (
+                inventario.stock_actual
+            )
+    
+            # ----------------------------------------------
+            # CALCULAR NUEVO STOCK
+            # ----------------------------------------------
+    
+            if tipo in {
+                "ENTRADA",
+                "AJUSTE_ENTRADA",
+            }:
+                stock_nuevo = (
+                    stock_anterior + cantidad
+                )
+    
+            else:
+                stock_nuevo = (
+                    stock_anterior - cantidad
+                )
+    
+                if stock_nuevo < 0:
+                    raise ValueError(
+                        "Stock insuficiente para "
+                        "realizar la salida."
+                    )
+    
+            # ----------------------------------------------
+            # ACTUALIZAR + REGISTRAR
+            # ----------------------------------------------
+    
+            inventario.stock_actual = stock_nuevo
+    
+            movimiento = MovimientoInventario(
+                inventario_id=inventario.id,
+                tipo=tipo,
+                cantidad=cantidad,
+                stock_anterior=stock_anterior,
+                stock_nuevo=stock_nuevo,
+                motivo=(
+                    data.motivo.strip()
+                    if data.motivo
+                    else None
+                ),
                 usuario_id=usuario_id,
-                accion="MOVIMIENTO",
-                entidad="inventario",
-                entidad_id=inventario.id,
-                detalle={
-                    "tipo": tipo,
-                    "cantidad": str(cantidad),
-                    "stock_anterior": str(stock_anterior),
-                    "stock_nuevo": str(stock_nuevo),
-                    "motivo": movimiento.motivo,
-                },
             )
-
-            # Un solo commit para ambas operaciones.
-            db.commit()
-
-            db.refresh(inventario)
-            db.refresh(movimiento)
-
-        except Exception:
-            db.rollback()
-            raise
-
-        return movimiento
-
-    # ==================================================
-    # HISTORIAL
-    # ==================================================
-
-def get_movimientos(
-        self,
-        inventario_id: int,
-        db: Session,
-    ) -> list[MovimientoInventario]:
-
-        self.get_by_id(
-            inventario_id,
-            db,
-        )
-
-        return (
-            db.query(MovimientoInventario)
-            .filter(
-                MovimientoInventario.inventario_id
-                == inventario_id
+    
+            try:
+                db.add(movimiento)
+    
+                registrar_auditoria(
+                    db=db,
+                    usuario_id=usuario_id,
+                    accion="MOVIMIENTO",
+                    entidad="inventario",
+                    entidad_id=inventario.id,
+                    detalle={
+                        "tipo": tipo,
+                        "cantidad": str(cantidad),
+                        "stock_anterior": str(stock_anterior),
+                        "stock_nuevo": str(stock_nuevo),
+                        "motivo": movimiento.motivo,
+                    },
+                )
+    
+                # Un solo commit para ambas operaciones.
+                db.commit()
+    
+                db.refresh(inventario)
+                db.refresh(movimiento)
+    
+            except Exception:
+                db.rollback()
+                raise
+    
+            return movimiento
+    
+        # ==================================================
+        # HISTORIAL
+        # ==================================================
+    
+    def get_movimientos(
+            self,
+            inventario_id: int,
+            db: Session,
+        ) -> list[MovimientoInventario]:
+    
+            self.get_by_id(
+                inventario_id,
+                db,
             )
-            .order_by(
-                MovimientoInventario.created_at.desc()
+    
+            return (
+                db.query(MovimientoInventario)
+                .filter(
+                    MovimientoInventario.inventario_id
+                    == inventario_id
+                )
+                .order_by(
+                    MovimientoInventario.created_at.desc()
+                )
+                .all()
             )
-            .all()
-        )
 
 
 inventario_service = InventarioService()

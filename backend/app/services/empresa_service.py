@@ -1,6 +1,8 @@
 from sqlalchemy.orm import Session
 
 from app.models.empresa_model import Empresa
+from app.services.audit_service import registrar_auditoria
+
 from app.schemas.empresa_schema import (
     EmpresaCreate,
     EmpresaUpdate,
@@ -13,6 +15,7 @@ class EmpresaService:
         self,
         data: EmpresaCreate,
         db: Session,
+        usuario_id: int | None = None,
     ) -> Empresa:
 
         ruc = data.ruc.strip()
@@ -55,6 +58,8 @@ class EmpresaService:
 
         try:
             db.add(empresa)
+            db.flush()
+            registrar_auditoria(db, usuario_id, "CREAR", "empresa", empresa.id, {"ruc": empresa.ruc})
             db.commit()
             db.refresh(empresa)
 
@@ -101,6 +106,7 @@ class EmpresaService:
         empresa_id: int,
         data: EmpresaUpdate,
         db: Session,
+        usuario_id: int | None = None,
     ) -> Empresa:
 
         empresa = self.get_by_id(
@@ -130,6 +136,7 @@ class EmpresaService:
             )
 
         try:
+            registrar_auditoria(db, usuario_id, "ACTUALIZAR", "empresa", empresa.id, {"campos": list(values.keys())})
             db.commit()
             db.refresh(empresa)
 

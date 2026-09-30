@@ -31,7 +31,7 @@ router = APIRouter(
 def crear_registro_ml(
     data: MLTrainingRecordCreate,
     db: Session = Depends(get_db),
-    current_user: Usuario = Depends(require_role("admin"))
+    current_user: Usuario = Depends(require_role("administrador"))
 ):
 
     return ml_training_service.create_record(

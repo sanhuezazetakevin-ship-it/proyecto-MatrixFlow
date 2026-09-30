@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 
 from app.models.categoria_model import Categoria
 
+from app.services.audit_service import registrar_auditoria
+
 from app.schemas.categoria_schema import (
     CategoriaCreate,
     CategoriaUpdate,
@@ -15,6 +17,7 @@ class CategoriaService:
         self,
         data: CategoriaCreate,
         db: Session,
+        usuario_id: int | None = None,
     ) -> Categoria:
 
         nombre = data.nombre.strip()
@@ -44,6 +47,8 @@ class CategoriaService:
 
         try:
             db.add(categoria)
+            db.flush()
+            registrar_auditoria(db, usuario_id, "CREAR", "categoria", categoria.id, {"nombre": categoria.nombre})
             db.commit()
             db.refresh(categoria)
 
@@ -90,6 +95,7 @@ class CategoriaService:
         categoria_id: int,
         data: CategoriaUpdate,
         db: Session,
+        usuario_id: int | None = None,
     ) -> Categoria:
 
         categoria = self.get_by_id(
@@ -137,6 +143,7 @@ class CategoriaService:
             )
 
         try:
+            registrar_auditoria(db, usuario_id, "ACTUALIZAR", "categoria", categoria.id, {"campos": list(values.keys())})
             db.commit()
             db.refresh(categoria)
 

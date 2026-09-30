@@ -88,6 +88,7 @@ def obtener_vector(
         return vector_service.get_by_id(
             vector_id,
             db,
+            usuario_id=current_user.id,
         )
 
     except ValueError as error:
@@ -114,6 +115,7 @@ def actualizar_vector(
             vector_id,
             data,
             db,
+            usuario_id=current_user.id,
         )
 
     except ValueError as error:
@@ -144,6 +146,7 @@ def eliminar_vector(
         vector_service.delete(
             vector_id,
             db,
+            usuario_id=current_user.id,
         )
 
         return Response(

@@ -42,6 +42,7 @@ def crear_producto(
         return producto_service.create(
             data,
             db,
+            usuario_id=current_user.id,
         )
 
     except ValueError as error:
@@ -159,6 +160,7 @@ def actualizar_producto(
             producto_id,
             data,
             db,
+            usuario_id=current_user.id,
         )
 
     except ValueError as error:

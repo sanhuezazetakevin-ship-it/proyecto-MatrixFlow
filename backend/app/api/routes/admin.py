@@ -6,6 +6,7 @@ from app.core.security import require_role
 from app.database.connection import get_db
 from app.models.usuario_model import Usuario
 from app.models.audit_log_model import AuditLog
+from app.services.audit_service import registrar_auditoria
 
 
 router = APIRouter(
@@ -64,7 +65,13 @@ def cambiar_rol(
             detail="No puede quitarse a sí mismo el rol de administrador."
         )
 
+    rol_anterior = usuario.rol
     usuario.rol = nuevo_rol
+    registrar_auditoria(
+        db=db, usuario_id=current_user.id, accion="CAMBIAR_ROL",
+        entidad="usuario", entidad_id=usuario.id,
+        detalle={"rol_anterior": rol_anterior, "rol_nuevo": nuevo_rol},
+    )
     db.commit()
     db.refresh(usuario)
 
@@ -109,7 +116,13 @@ def cambiar_estado_usuario(
             detail="No puede desactivarse a sí mismo."
         )
 
+    estado_anterior = usuario.activo
     usuario.activo = activo
+    registrar_auditoria(
+        db=db, usuario_id=current_user.id, accion="CAMBIAR_ESTADO",
+        entidad="usuario", entidad_id=usuario.id,
+        detalle={"activo_anterior": estado_anterior, "activo_nuevo": activo},
+    )
     db.commit()
     db.refresh(usuario)
 

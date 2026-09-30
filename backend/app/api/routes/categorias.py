@@ -20,7 +20,6 @@ from app.services.categoria_service import (
 
 from app.core.security import require_role
 
-require_role("administrador")
 
 
 router = APIRouter(
@@ -47,6 +46,7 @@ def crear_categoria(
         return categoria_service.create(
             data,
             db,
+            usuario_id=current_user.id,
         )
 
     except ValueError as error:
@@ -126,6 +126,7 @@ def actualizar_categoria(
             categoria_id,
             data,
             db,
+            usuario_id=current_user.id,
         )
 
     except ValueError as error:

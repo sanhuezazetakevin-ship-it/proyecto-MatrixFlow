@@ -20,7 +20,7 @@ router = APIRouter(
 @router.post("/entrenar")
 def entrenar_modelo(
     db: Session = Depends(get_db),
-    current_user: Usuario = Depends(require_role("admin"))
+    current_user: Usuario = Depends(require_role("administrador"))
 ):
     try:
         resultado = probability_service.train(db)
@@ -41,7 +41,7 @@ def entrenar_modelo(
 @router.get("/metricas")
 def obtener_metricas(
     db: Session = Depends(get_db),
-    current_user: Usuario = Depends(require_role("admin"))
+    current_user: Usuario = Depends(require_role("administrador"))
 ):
     try:
         return probability_service.get_metrics(db)

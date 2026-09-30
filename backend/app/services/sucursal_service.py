@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 from app.models.empresa_model import Empresa
 from app.models.sucursal_model import Sucursal
 
+from app.services.audit_service import registrar_auditoria
+
 from app.schemas.sucursal_schema import (
     SucursalCreate,
     SucursalUpdate,
@@ -15,6 +17,7 @@ class SucursalService:
         self,
         data: SucursalCreate,
         db: Session,
+        usuario_id: int | None = None,
     ) -> Sucursal:
 
         # ================================================
@@ -94,6 +97,8 @@ class SucursalService:
 
         try:
             db.add(sucursal)
+            db.flush()
+            registrar_auditoria(db, usuario_id, "CREAR", "sucursal", sucursal.id, {"codigo": sucursal.codigo})
             db.commit()
             db.refresh(sucursal)
 
@@ -168,6 +173,7 @@ class SucursalService:
         sucursal_id: int,
         data: SucursalUpdate,
         db: Session,
+        usuario_id: int | None = None,
     ) -> Sucursal:
 
         sucursal = self.get_by_id(
@@ -191,6 +197,7 @@ class SucursalService:
             )
 
         try:
+            registrar_auditoria(db, usuario_id, "ACTUALIZAR", "sucursal", sucursal.id, {"campos": list(values.keys())})
             db.commit()
             db.refresh(sucursal)
 

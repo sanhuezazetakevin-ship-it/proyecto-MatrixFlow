@@ -44,6 +44,7 @@ def crear_empresa(
         return empresa_service.create(
             data,
             db,
+            usuario_id=current_user.id,
         )
 
     except ValueError as error:
@@ -65,12 +66,9 @@ def crear_empresa(
 )
 def listar_empresas(
     current_user: Usuario = Depends(
-    require_role(
-        "administrador",
-        "analista",
-        "consulta"
-    )
-)
+        require_role("administrador", "analista", "consulta")
+    ),
+    db: Session = Depends(get_db),
 ):
     return empresa_service.get_all(db)
 
@@ -116,6 +114,7 @@ def actualizar_empresa(
             empresa_id,
             data,
             db,
+            usuario_id=current_user.id,
         )
 
     except ValueError as error:

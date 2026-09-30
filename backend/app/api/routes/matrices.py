@@ -87,6 +87,7 @@ def obtener_matriz(
         return matriz_service.get_by_id(
             matriz_id,
             db,
+            usuario_id=current_user.id,
         )
 
     except ValueError as error:
@@ -113,6 +114,7 @@ def actualizar_matriz(
             matriz_id,
             data,
             db,
+            usuario_id=current_user.id,
         )
 
     except ValueError as error:
@@ -144,6 +146,7 @@ def eliminar_matriz(
         matriz_service.delete(
             matriz_id,
             db,
+            usuario_id=current_user.id,
         )
 
         return Response(
