@@ -25,10 +25,10 @@ export const OperacionesPage: React.FC = () => {
         const [vecs, mats] = await Promise.all([getVectores(), getMatrices()]);
         setVectores(vecs);
         setMatrices(mats);
-        if (vecs.length >= 2) { setVectorA(vecs[0].id); setVectorB(vecs[1].id); }
-        else if (vecs.length === 1) { setVectorA(vecs[0].id); setVectorB(vecs[0].id); }
-        if (mats.length >= 2) { setMatrizA(mats[0].id); setMatrizB(mats[1].id); }
-        else if (mats.length === 1) { setMatrizA(mats[0].id); setMatrizB(mats[0].id); }
+        if (vecs.length >= 2) { setVectorA(String(vecs[0].id)); setVectorB(String(vecs[1].id)); }
+        else if (vecs.length === 1) { setVectorA(String(vecs[0].id)); setVectorB(String(vecs[0].id)); }
+        if (mats.length >= 2) { setMatrizA(String(mats[0].id)); setMatrizB(String(mats[1].id)); }
+        else if (mats.length === 1) { setMatrizA(String(mats[0].id)); setMatrizB(String(mats[0].id)); }
       } catch (err) { console.error(err); }
     }
     load();
