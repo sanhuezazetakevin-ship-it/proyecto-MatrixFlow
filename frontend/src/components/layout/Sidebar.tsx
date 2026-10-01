@@ -3,44 +3,46 @@ import { NavLink } from 'react-router-dom';
 import { 
   LayoutDashboard, Building2, MapPin, Package, ShoppingCart, 
   Boxes, Binary, Grid3X3, Calculator, Network, History, 
-  BarChart3, Users, Settings, ChevronDown 
+  BarChart3, Users, Settings, ChevronDown, LogOut 
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 export const Sidebar: React.FC = () => {
   const [empresaOpen, setEmpresaOpen] = React.useState(true);
   const [mathOpen, setMathOpen] = React.useState(true);
+  const { user } = useAuth();
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
-    `flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+    `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 ${
       isActive
-        ? 'bg-primary text-white font-semibold shadow-sm'
-        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+        ? 'matrix-sidebar-link-active shadow-md'
+        : 'matrix-sidebar-link'
     }`;
 
   const subLinkClass = ({ isActive }: { isActive: boolean }) =>
-    `flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs transition-all ${
+    `flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 ${
       isActive
-        ? 'text-accent font-semibold bg-slate-800/80 border-l-2 border-accent pl-2'
-        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+        ? 'matrix-sidebar-link-active'
+        : 'matrix-sidebar-link'
     }`;
 
   return (
-    <aside className="w-64 bg-sidebar text-slate-300 flex flex-col h-screen fixed left-0 top-0 z-30 shadow-xl border-r border-slate-800">
+    <aside className="matrix-sidebar w-64 flex flex-col h-screen fixed left-0 top-0 z-30 shadow-2xl">
       {/* Brand Header */}
-      <div className="p-5 border-b border-slate-800/80 flex items-center gap-3">
-        <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-primary to-accent flex items-center justify-center text-white font-black text-lg shadow-md shadow-primary/30">
+      <div className="p-5 border-b border-brand-dark flex items-center gap-3 bg-brand-darker/50">
+        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-teal to-brand-mint flex items-center justify-center text-brand-darkest font-black text-lg shadow-md shadow-brand-teal/30">
           M
         </div>
         <div>
-          <h1 className="font-bold text-white tracking-tight text-base leading-none">MATRIXFLOW</h1>
-          <span className="text-[10px] text-accent font-semibold tracking-wider uppercase">Enterprise v1.0</span>
+          <h1 className="font-extrabold text-white tracking-tight text-base leading-none">MATRIXFLOW</h1>
+          <span className="text-[10px] text-brand-mint font-bold tracking-wider uppercase">Enterprise v1.0</span>
         </div>
       </div>
 
       {/* Navigation Links */}
       <nav className="flex-1 overflow-y-auto p-4 space-y-1.5 text-xs">
         <NavLink to="/dashboard" className={linkClass}>
-          <LayoutDashboard size={16} />
+          <LayoutDashboard size={17} />
           <span>Dashboard</span>
         </NavLink>
 
@@ -48,16 +50,16 @@ export const Sidebar: React.FC = () => {
         <div>
           <button
             onClick={() => setEmpresaOpen(!empresaOpen)}
-            className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 text-xs font-medium transition-all"
+            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-300 hover:text-white hover:bg-brand-dark/80 text-xs font-semibold transition-all"
           >
             <div className="flex items-center gap-3">
-              <Building2 size={16} />
+              <Building2 size={17} />
               <span>Empresa</span>
             </div>
             <ChevronDown size={14} className={`transition-transform duration-200 ${empresaOpen ? 'rotate-180' : ''}`} />
           </button>
           {empresaOpen && (
-            <div className="ml-4 pl-3 border-l border-slate-800 mt-1 space-y-1">
+            <div className="ml-4 pl-3 border-l border-brand-dark/80 mt-1 space-y-1">
               <NavLink to="/empresa" className={subLinkClass}>
                 <span>Información Corporativa</span>
               </NavLink>
@@ -74,33 +76,33 @@ export const Sidebar: React.FC = () => {
         </div>
 
         <NavLink to="/ventas" className={linkClass}>
-          <ShoppingCart size={16} />
+          <ShoppingCart size={17} />
           <span>Ventas</span>
         </NavLink>
 
         <NavLink to="/inventario" className={linkClass}>
-          <Boxes size={16} />
+          <Boxes size={17} />
           <span>Inventario</span>
         </NavLink>
 
         {/* Análisis Matemático Group */}
-        <div className="pt-2">
-          <div className="px-3 mb-1 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+        <div className="pt-3">
+          <div className="px-3 mb-1.5 text-[10px] font-extrabold text-brand-mint uppercase tracking-wider">
             Motor de Álgebra Lineal
           </div>
           <button
             onClick={() => setMathOpen(!mathOpen)}
-            className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 text-xs font-medium transition-all"
+            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-300 hover:text-white hover:bg-brand-dark/80 text-xs font-semibold transition-all"
           >
             <div className="flex items-center gap-3">
-              <Binary size={16} className="text-accent" />
-              <span className="text-slate-200">Análisis Matemático</span>
+              <Binary size={17} className="text-brand-mint" />
+              <span className="text-white font-bold">Análisis Matemático</span>
             </div>
             <ChevronDown size={14} className={`transition-transform duration-200 ${mathOpen ? 'rotate-180' : ''}`} />
           </button>
 
           {mathOpen && (
-            <div className="ml-4 pl-3 border-l border-slate-800 mt-1 space-y-1">
+            <div className="ml-4 pl-3 border-l border-brand-dark/80 mt-1 space-y-1">
               <NavLink to="/vectores" className={subLinkClass}>
                 <Binary size={14} />
                 <span>Vectores</span>
@@ -122,39 +124,52 @@ export const Sidebar: React.FC = () => {
         </div>
 
         {/* General Management */}
-        <div className="pt-2">
-          <div className="px-3 mb-1 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+        <div className="pt-3">
+          <div className="px-3 mb-1.5 text-[10px] font-extrabold text-brand-mint uppercase tracking-wider">
             Gestión & Reportes
           </div>
           <NavLink to="/historial" className={linkClass}>
-            <History size={16} />
+            <History size={17} />
             <span>Historial y Auditoría</span>
           </NavLink>
           <NavLink to="/reportes" className={linkClass}>
-            <BarChart3 size={16} />
+            <BarChart3 size={17} />
             <span>Reportes & KPIs</span>
           </NavLink>
           <NavLink to="/usuarios" className={linkClass}>
-            <Users size={16} />
+            <Users size={17} />
             <span>Usuarios & Roles</span>
           </NavLink>
           <NavLink to="/configuracion" className={linkClass}>
-            <Settings size={16} />
+            <Settings size={17} />
             <span>Configuración</span>
           </NavLink>
         </div>
       </nav>
 
       {/* User Footer Profile */}
-      <div className="p-4 border-t border-slate-800/80 bg-slate-900/60 flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center text-primary font-bold text-xs">
-            GA
+      <div className="p-4 border-t border-brand-dark bg-brand-darker flex items-center justify-between">
+        <div className="flex items-center gap-2.5 w-full">
+          <div className="w-8 h-8 rounded-full bg-brand-teal border border-brand-mint flex items-center justify-center text-brand-mint font-extrabold text-xs shrink-0">
+            {user?.nombre 
+              ? user.nombre.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() 
+              : 'U'}
           </div>
-          <div className="overflow-hidden">
-            <p className="text-xs font-medium text-white truncate">Gabriel Admin</p>
-            <p className="text-[10px] text-slate-400">ADMINISTRADOR</p>
+          <div className="overflow-hidden flex-1">
+            <p className="text-xs font-bold text-white truncate">{user?.nombre || 'Usuario'}</p>
+            <p className="text-[10px] text-brand-mint font-semibold truncate capitalize">{user?.rol || 'consulta'}</p>
           </div>
+          <button 
+            onClick={() => {
+              localStorage.removeItem('matrixflow_token');
+              localStorage.removeItem('matrixflow_user');
+              window.location.href = '/login';
+            }}
+            className="text-slate-400 hover:text-red-400 transition-colors p-1"
+            title="Cerrar sesión"
+          >
+            <LogOut size={16} />
+          </button>
         </div>
       </div>
     </aside>

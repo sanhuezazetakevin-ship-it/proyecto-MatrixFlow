@@ -2,15 +2,15 @@ import React from 'react';
 import { Card, CardHeader } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { mockSales } from '../services/mockData';
-import { ShoppingCart, Plus, Calendar } from 'lucide-react';
+import { Plus, Calendar } from 'lucide-react';
 
 export const VentasPage: React.FC = () => {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Registro de Ventas</h1>
-          <p className="text-xs text-slate-500 mt-1">Histórico transaccional utilizado como fuente para la matriz Q_Real</p>
+          <h1 className="text-2xl font-extrabold">Registro de Ventas</h1>
+          <p className="text-xs font-bold mt-1 text-muted-custom">Histórico transaccional utilizado como fuente para la matriz Q_Real</p>
         </div>
         <Button variant="primary"><Plus size={16} /> Registrar Venta</Button>
       </div>
@@ -19,7 +19,7 @@ export const VentasPage: React.FC = () => {
         <CardHeader title="Ventas por Comprobante" />
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+            <thead className="matrix-table-head">
               <tr>
                 <th className="p-3">ID Venta</th>
                 <th className="p-3">Sucursal</th>
@@ -29,19 +29,19 @@ export const VentasPage: React.FC = () => {
                 <th className="p-3 text-right">Detalles</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-200 dark:divide-brand-dark">
               {mockSales.map((s) => (
-                <tr key={s.id} className="hover:bg-slate-50/80">
-                  <td className="p-3 font-mono font-semibold text-primary">{s.id}</td>
-                  <td className="p-3 font-medium text-slate-800">{s.branchName}</td>
-                  <td className="p-3 text-slate-500 flex items-center gap-1.5">
-                    <Calendar size={14} />
+                <tr key={s.id} className="matrix-table-row font-semibold hover:opacity-90">
+                  <td className="p-3 font-mono font-extrabold text-accent-custom">{s.id}</td>
+                  <td className="p-3 font-bold">{s.branchName}</td>
+                  <td className="p-3 font-bold flex items-center gap-1.5">
+                    <Calendar size={14} className="text-accent-custom" />
                     {s.date}
                   </td>
-                  <td className="p-3 text-slate-700">{s.itemsCount} productos</td>
-                  <td className="p-3 font-bold text-slate-900">S/ {s.totalAmount.toLocaleString()}</td>
+                  <td className="p-3 font-semibold">{s.itemsCount} productos</td>
+                  <td className="p-3 font-black text-sm text-accent-custom">S/ {s.totalAmount.toLocaleString()}</td>
                   <td className="p-3 text-right">
-                    <button className="text-primary hover:underline font-medium">Ver Comprobante</button>
+                    <button className="text-accent-custom hover:underline font-extrabold">Ver Comprobante</button>
                   </td>
                 </tr>
               ))}

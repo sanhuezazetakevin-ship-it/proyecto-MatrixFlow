@@ -1,375 +1,190 @@
-import {
-  useCallback,
-  useState,
-} from "react";
-
-import {
-  Link,
-  useNavigate,
-} from "react-router-dom";
-
+import { useCallback, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-
-import CameraCapture
-  from "../components/CameraCapture";
-
-import { loginWithFace }
-  from "../api/authApi";
-
-import { useAuth }
-  from "../context/AuthContext";
-
+import { ArrowLeft, Camera, ShieldCheck, UserCheck } from "lucide-react";
+import CameraCapture from "../components/CameraCapture";
+import { loginWithFace } from "../api/authApi";
+import { useAuth } from "../context/AuthContext";
+import { Button } from "../components/ui/Button";
 
 export default function FacialLoginPage() {
+  const navigate = useNavigate();
+  const { saveSession } = useAuth();
 
-  const navigate =
-    useNavigate();
+  const [dni, setDni] = useState("");
+  const [capturing, setCapturing] = useState(false);
+  const [processing, setProcessing] = useState(false);
+  const [error, setError] = useState("");
+  const [status, setStatus] = useState("Ingresa tu DNI para comenzar.");
 
-  const {
-    saveSession,
-  } = useAuth();
-
-
-  const [dni, setDni] =
-    useState("");
-
-  const [capturing, setCapturing] =
-    useState(false);
-
-  const [processing, setProcessing] =
-    useState(false);
-
-  const [error, setError] =
-    useState("");
-
-  const [status, setStatus] =
-    useState(
-      "Ingresa tu DNI para comenzar."
-    );
-
-
-  // ========================================================
-  // ERROR DE CÁMARA
-  // ========================================================
-
-  const handleCameraError =
-    useCallback(
-      (message: string) => {
-
-        setError(message);
-        setCapturing(false);
-        setProcessing(false);
-
-      },
-      []
-    );
-
-
-  // ========================================================
-  // COMENZAR VERIFICACIÓN
-  // ========================================================
+  const handleCameraError = useCallback((message: string) => {
+    setError(message);
+    setCapturing(false);
+    setProcessing(false);
+  }, []);
 
   function startVerification() {
-
     setError("");
+    const cleanDni = dni.trim();
 
-
-    const cleanDni =
-      dni.trim();
-
-
-    if (
-      cleanDni.length !== 8 ||
-      !/^\d{8}$/.test(cleanDni)
-    ) {
-
-      setError(
-        "Ingresa un DNI válido de 8 dígitos."
-      );
-
+    if (cleanDni.length !== 8 || !/^\d{8}$/.test(cleanDni)) {
+      setError("Ingresa un DNI válido de 8 dígitos.");
       return;
     }
 
-
-    setStatus(
-      "Mira a la cámara y mueve ligeramente la cabeza."
-    );
-
+    setStatus("Mira a la cámara y mueve ligeramente la cabeza.");
     setCapturing(true);
   }
 
+  const handleFramesCaptured = useCallback(
+    async (frames: Blob[]) => {
+      setCapturing(false);
+      setProcessing(true);
+      setError("");
+      setStatus("Verificando identidad con IA...");
 
-  // ========================================================
-  // FRAMES CAPTURADOS
-  // ========================================================
-
-  const handleFramesCaptured =
-    useCallback(
-      async (frames: Blob[]) => {
-
-        setCapturing(false);
-        setProcessing(true);
-        setError("");
-
-        setStatus(
-          "Verificando identidad..."
-        );
-
-
-        try {
-
-          const result =
-            await loginWithFace(
-              dni.trim(),
-              frames
-            );
-
-
-          saveSession(
-            result.access_token,
-            result.usuario
-          );
-
-
-          setStatus(
-            "Identidad verificada."
-          );
-
-
-          navigate(
-            "/dashboard",
-            {
-              replace: true,
-            }
-          );
-
-        } catch (error) {
-
-          console.error(error);
-
-
-          if (axios.isAxiosError(error)) {
-
-            const detail =
-              error.response
-                ?.data
-                ?.detail;
-
-
-            setError(
-              typeof detail === "string"
-                ? detail
-                : "No se pudo verificar la identidad."
-            );
-
-          } else {
-
-            setError(
-              "Ocurrió un error durante la verificación."
-            );
-
-          }
-
-
-          setStatus(
-            "Puedes intentarlo nuevamente."
-          );
-
-        } finally {
-
-          setProcessing(false);
-
+      try {
+        const result = await loginWithFace(dni.trim(), frames);
+        saveSession(result.access_token, result.usuario);
+        setStatus("Identidad verificada exitosamente.");
+        navigate("/dashboard", { replace: true });
+      } catch (error) {
+        console.error(error);
+        if (axios.isAxiosError(error)) {
+          const detail = error.response?.data?.detail;
+          setError(typeof detail === "string" ? detail : "No se pudo verificar la identidad.");
+        } else {
+          setError("Ocurrió un error durante la verificación.");
         }
+        setStatus("Puedes intentarlo nuevamente.");
+      } finally {
+        setProcessing(false);
+      }
+    },
+    [dni, navigate, saveSession]
+  );
 
-      },
-      [
-        dni,
-        navigate,
-        saveSession,
-      ]
-    );
-
-
-  const busy =
-    capturing || processing;
-
+  const busy = capturing || processing;
 
   return (
-    <main className="facial-page">
+    <main className="min-h-screen bg-brand-darkest text-slate-100 p-6 flex flex-col justify-between transition-colors duration-300">
+      <div className="max-w-6xl w-full mx-auto animate-fade-in">
+        {/* Top Header Navigation */}
+        <div className="flex items-center justify-between pb-8">
+          <div></div>
 
-      <div className="facial-container">
-
-        <div className="facial-header">
-
-          <Link
-            to="/login"
-            className="back-link"
-          >
-            ← Volver
-          </Link>
-
-
-          <div className="facial-brand">
-            MatrixFlow
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-brand-teal flex items-center justify-center text-white font-bold text-sm">
+              M
+            </div>
+            <span className="font-bold text-white tracking-tight text-sm">MATRIXFLOW</span>
           </div>
-
         </div>
 
+        {/* Main Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center pt-4">
+          <section className="space-y-6">
+            <span className="px-3 py-1 bg-brand-mint/15 border border-brand-teal/30 rounded-full text-[11px] font-bold text-brand-mint tracking-wider uppercase inline-flex items-center gap-1.5">
+              <ShieldCheck size={14} /> Acceso Biométrico por Rostro
+            </span>
 
-        <div className="facial-grid">
-
-          <section className="facial-info">
-
-            <p className="eyebrow">
-              ACCESO BIOMÉTRICO
-            </p>
-
-            <h1>
-              Inicia sesión
-              con tu rostro.
+            <h1 className="text-4xl lg:text-5xl font-bold tracking-tight text-white leading-tight">
+              Inicia sesión con tu rostro en segundos.
             </h1>
 
-            <p className="facial-description">
-              Introduce tu DNI y realiza una
-              breve verificación frente a la
-              cámara.
+            <p className="text-sm text-slate-400 max-w-md leading-relaxed">
+              Ingresa tu documento de identidad (DNI) y realiza una verificación facial instantánea segura.
             </p>
 
-
-            <div className="facial-steps">
-
-              <div>
-                <span>01</span>
-
-                <p>
-                  Ingresa tu DNI
-                </p>
+            <div className="space-y-4 pt-2">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-brand-dark border border-brand-teal flex items-center justify-center text-brand-mint font-bold text-xs">
+                  01
+                </div>
+                <p className="text-xs font-semibold text-slate-200">Ingresa tu número de DNI</p>
               </div>
 
-
-              <div>
-                <span>02</span>
-
-                <p>
-                  Mira a la cámara
-                </p>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-brand-dark border border-brand-teal flex items-center justify-center text-brand-mint font-bold text-xs">
+                  02
+                </div>
+                <p className="text-xs font-semibold text-slate-200">Permite la cámara y posiciona tu rostro</p>
               </div>
 
-
-              <div>
-                <span>03</span>
-
-                <p>
-                  Verificamos tu identidad
-                </p>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-brand-dark border border-brand-teal flex items-center justify-center text-brand-mint font-bold text-xs">
+                  03
+                </div>
+                <p className="text-xs font-semibold text-slate-200">Verificamos biometría y te redirigimos</p>
               </div>
-
             </div>
-
           </section>
 
+          {/* Camera & Form Card */}
+          <section className="bg-brand-darker border border-brand-dark rounded-2xl p-6 shadow-2xl relative">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  Número de DNI
+                </label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={8}
+                  placeholder="Ingresa 8 dígitos"
+                  value={dni}
+                  disabled={busy}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, "").slice(0, 8);
+                    setDni(value);
+                  }}
+                  className="w-full px-4 py-2.5 bg-brand-dark/60 border border-brand-dark rounded-lg text-sm font-semibold text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-teal tracking-widest"
+                />
+              </div>
 
-          <section className="facial-card">
-
-            <label
-              className="dni-field"
-            >
-              DNI
-
-              <input
-                type="text"
-                inputMode="numeric"
-                maxLength={8}
-                placeholder="Ingresa 8 dígitos"
-                value={dni}
-                disabled={busy}
-                onChange={(event) => {
-
-                  const value =
-                    event.target.value
-                      .replace(
-                        /\D/g,
-                        ""
-                      )
-                      .slice(
-                        0,
-                        8
-                      );
-
-                  setDni(value);
-
-                }}
+              <CameraCapture
+                capturing={capturing}
+                totalFrames={3}
+                captureInterval={700}
+                onFramesCaptured={handleFramesCaptured}
+                onError={handleCameraError}
               />
 
-            </label>
+              <div className="flex items-center gap-2 p-3 bg-brand-dark/50 border border-brand-dark rounded-lg text-xs text-slate-300">
+                {processing && <div className="w-4 h-4 border-2 border-brand-mint border-t-transparent rounded-full animate-spin"></div>}
+                <span>{status}</span>
+              </div>
 
-
-            <CameraCapture
-  capturing={capturing}
-  totalFrames={5}
-  captureInterval={700}
-  onFramesCaptured={
-    handleFramesCaptured
-  }
-  onError={
-    handleCameraError
-  }
-/>
-
-
-            <div className="verification-status">
-
-              {processing && (
-                <div
-                  className="small-loader"
-                />
+              {error && (
+                <div className="p-3 bg-red-950/60 border border-red-800 rounded-lg text-xs text-red-300">
+                  {error}
+                </div>
               )}
 
-              <span>
-                {status}
-              </span>
-
-            </div>
-
-
-            {error && (
-              <div
-                className="error-message"
-                role="alert"
+              <Button
+                type="button"
+                variant="accent"
+                className="w-full py-3"
+                disabled={busy}
+                onClick={startVerification}
               >
-                {error}
-              </div>
-            )}
+                <UserCheck size={16} />
+                <span>
+                  {capturing
+                    ? "Capturando rostro..."
+                    : processing
+                    ? "Verificando identidad..."
+                    : "Verificar mi identidad"}
+                </span>
+              </Button>
 
-
-            <button
-              type="button"
-              className="primary-button facial-submit"
-              disabled={busy}
-              onClick={
-                startVerification
-              }
-            >
-              {capturing
-                ? "Capturando..."
-                : processing
-                ? "Verificando..."
-                : "Verificar mi identidad"}
-            </button>
-
-
-            <p className="privacy-note">
-              La cámara se utiliza únicamente
-              durante el proceso de
-              verificación.
-            </p>
-
+              <p className="text-[11px] text-center text-slate-500 pt-1">
+                La cámara se utiliza únicamente durante el proceso de validación biométrica.
+              </p>
+            </div>
           </section>
-
         </div>
-
       </div>
-
     </main>
   );
 }

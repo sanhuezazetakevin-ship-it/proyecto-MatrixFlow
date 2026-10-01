@@ -1,8 +1,11 @@
-<<<<<<< HEAD
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { MainLayout } from './components/layout/MainLayout';
+import ProtectedRoute from './components/ProtectedRoute';
+import { LandingPage } from './pages/LandingPage';
 import { LoginPage } from './pages/LoginPage';
+import FacialLoginPage from './pages/FacialLoginPage';
+import RegisterPage from './pages/RegisterPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { EmpresaPage } from './pages/EmpresaPage';
 import { SucursalesPage } from './pages/SucursalesPage';
@@ -20,108 +23,32 @@ import { ConfiguracionPage } from './pages/ConfiguracionPage';
 
 export const App: React.FC = () => {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        
-        <Route path="/" element={<MainLayout />}>
-          <Route index element={<Navigate to="/dashboard" replace />} />
-          <Route path="dashboard" element={<DashboardPage />} />
-          <Route path="empresa" element={<EmpresaPage />} />
-          <Route path="sucursales" element={<SucursalesPage />} />
-          <Route path="productos" element={<ProductosPage />} />
-          <Route path="ventas" element={<VentasPage />} />
-          <Route path="inventario" element={<InventarioPage />} />
-          <Route path="vectores" element={<VectoresPage />} />
-          <Route path="matrices" element={<MatricesPage />} />
-          <Route path="operaciones" element={<OperacionesPage />} />
-          <Route path="combinaciones" element={<CombinacionesPage />} />
-          <Route path="historial" element={<HistorialPage />} />
-          <Route path="reportes" element={<ReportesPage />} />
-          <Route path="usuarios" element={<UsuariosPage />} />
-          <Route path="configuracion" element={<ConfiguracionPage />} />
-        </Route>
+    <Routes>
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/login/facial" element={<FacialLoginPage />} />
+      <Route path="/registro" element={<RegisterPage />} />
 
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
-      </Routes>
-    </BrowserRouter>
+      <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
+        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/empresa" element={<EmpresaPage />} />
+        <Route path="/sucursales" element={<SucursalesPage />} />
+        <Route path="/productos" element={<ProductosPage />} />
+        <Route path="/ventas" element={<VentasPage />} />
+        <Route path="/inventario" element={<InventarioPage />} />
+        <Route path="/vectores" element={<VectoresPage />} />
+        <Route path="/matrices" element={<MatricesPage />} />
+        <Route path="/operaciones" element={<OperacionesPage />} />
+        <Route path="/combinaciones" element={<CombinacionesPage />} />
+        <Route path="/historial" element={<HistorialPage />} />
+        <Route path="/reportes" element={<ReportesPage />} />
+        <Route path="/usuarios" element={<UsuariosPage />} />
+        <Route path="/configuracion" element={<ConfiguracionPage />} />
+      </Route>
+
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 };
 
 export default App;
-=======
-import {
-  Navigate,
-  Route,
-  Routes,
-} from "react-router-dom";
-
-import LoginPage
-  from "./pages/LoginPage";
-
-import FacialLoginPage
-  from "./pages/FacialLoginPage";
-
-import RegisterPage
-  from "./pages/RegisterPage";
-
-import DashboardPage
-  from "./pages/DashboardPage";
-
-import ProtectedRoute
-  from "./components/ProtectedRoute";
-
-
-export default function App() {
-
-  return (
-    <Routes>
-
-      <Route
-        path="/"
-        element={
-          <Navigate
-            to="/login"
-            replace
-          />
-        }
-      />
-
-      <Route
-        path="/login"
-        element={<LoginPage />}
-      />
-
-      <Route
-        path="/login/facial"
-        element={<FacialLoginPage />}
-      />
-
-      <Route
-        path="/registro"
-        element={<RegisterPage />}
-      />
-
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <DashboardPage />
-          </ProtectedRoute>
-        }
-      />
-
-      <Route
-        path="*"
-        element={
-          <Navigate
-            to="/login"
-            replace
-          />
-        }
-      />
-
-    </Routes>
-  );
-}
->>>>>>> 87884f86cb2298dcd4e88163aca4349d473a1149

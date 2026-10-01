@@ -126,99 +126,33 @@ export default function CameraCapture({
 
   }, [onError]);
 
-  // ========================================================
-  // CAPTURAR FRAMES
-  // ========================================================
+  const [frames, setFrames] = useState<Blob[]>([]);
 
   useEffect(() => {
-
-    if (!capturing || !cameraReady) {
-      return;
-    }
-
-    let cancelled = false;
-
-    async function captureSequence() {
-
-      const frames: Blob[] = [];
-
+    if (capturing) {
+      setFrames([]);
       setCapturedCount(0);
-
-      for (
-        let index = 0;
-        index < totalFrames;
-        index++
-      ) {
-
-        if (cancelled) {
-          return;
-        }
-
-        if (index > 0) {
-
-          await new Promise<void>(
-            (resolve) => {
-
-              window.setTimeout(
-                resolve,
-                captureInterval
-              );
-
-            }
-          );
-        }
-
-        if (cancelled) {
-          return;
-        }
-
-        try {
-
-          const frame =
-            await captureFrame();
-
-          frames.push(frame);
-
-          setCapturedCount(
-            frames.length
-          );
-
-        } catch (error) {
-
-          console.error(error);
-
-          onError(
-            "No se pudo capturar correctamente la cámara."
-          );
-
-          return;
-        }
-      }
-
-      if (
-        !cancelled &&
-        frames.length === totalFrames
-      ) {
-
-        onFramesCaptured(frames);
-
-      }
     }
+  }, [capturing]);
 
-    captureSequence();
+  const handleManualCapture = async () => {
+    if (!cameraReady || !capturing) return;
 
-    return () => {
-      cancelled = true;
-    };
+    try {
+      const frame = await captureFrame();
+      const newFrames = [...frames, frame];
+      
+      setFrames(newFrames);
+      setCapturedCount(newFrames.length);
 
-  }, [
-    capturing,
-    cameraReady,
-    totalFrames,
-    captureInterval,
-    onFramesCaptured,
-    onError,
-  ]);
+      if (newFrames.length === totalFrames) {
+        onFramesCaptured(newFrames);
+      }
+    } catch (error) {
+      console.error(error);
+      onError("No se pudo capturar correctamente la cámara.");
+    }
+  };
 
   // ========================================================
   // CAPTURAR UN FRAME
@@ -350,13 +284,15 @@ export default function CameraCapture({
         )}
 
         {capturing && (
-          <div className="capture-indicator">
-
-            <span className="capture-dot" />
-
-            Capturando{" "}
-            {capturedCount}/{totalFrames}
-
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-50 flex flex-col items-center gap-2">
+            <button
+              type="button"
+              onClick={handleManualCapture}
+              className="px-6 py-2 bg-brand-teal text-brand-darkest font-bold rounded-full shadow-lg hover:bg-brand-mint transition-colors border-2 border-brand-mint flex items-center gap-2"
+            >
+              <span className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></span>
+              Capturar foto ({capturedCount}/{totalFrames})
+            </button>
           </div>
         )}
 
@@ -369,9 +305,8 @@ export default function CameraCapture({
         }}
       />
 
-      <p className="camera-help">
-        Mantén el rostro visible y centrado
-        durante las capturas.
+      <p className="camera-help mt-2">
+        Mantén el rostro visible y centrado. Haz clic en "Capturar foto" {totalFrames} veces.
       </p>
 
     </div>

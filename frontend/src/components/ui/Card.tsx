@@ -8,7 +8,7 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 export const Card: React.FC<CardProps> = ({ children, className = '', ...props }) => {
   return (
     <div 
-      className={`bg-white rounded-xl border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow p-5 ${className}`}
+      className={`matrix-card rounded-2xl p-5 transition-all duration-300 ${className}`}
       {...props}
     >
       {children}
@@ -19,10 +19,10 @@ export const Card: React.FC<CardProps> = ({ children, className = '', ...props }
 export const CardHeader: React.FC<{ title: string; subtitle?: string; action?: React.ReactNode }> = ({
   title, subtitle, action
 }) => (
-  <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
+  <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-200 dark:border-brand-dark">
     <div>
-      <h3 className="font-semibold text-slate-800 text-lg">{title}</h3>
-      {subtitle && <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>}
+      <h3 className="matrix-card-title font-extrabold text-lg tracking-tight">{title}</h3>
+      {subtitle && <p className="matrix-card-subtitle text-xs font-semibold mt-0.5">{subtitle}</p>}
     </div>
     {action && <div>{action}</div>}
   </div>

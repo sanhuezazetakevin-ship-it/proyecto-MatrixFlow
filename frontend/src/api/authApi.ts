@@ -46,9 +46,9 @@ export async function loginWithFace(
   frames: Blob[]
 ): Promise<FacialLoginResponse> {
 
-  if (frames.length !== 5) {
+  if (frames.length !== 3) {
     throw new Error(
-      "Se necesitan exactamente 5 capturas."
+      "Se necesitan exactamente 3 capturas."
     );
   }
 
